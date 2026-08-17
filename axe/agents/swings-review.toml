@@ -1,0 +1,28 @@
+name = "swings"
+description = "develop agent swings"
+model = "openai/develop"
+timeout = 600 
+tools = [
+  "list_directory",
+  "read_file",
+  "web_search"
+]
+files = [
+  "README.md",
+  "docs/SYS_ARCH.md",
+]
+
+system_prompt = """
+You are responsible for development of agent swings project.
+The goal of this project is offering a service including MCP and HTTP services.
+
+- The MCP service protocol version is 2026-07-28 with stateless session.
+- The backend golang module is in `src/backend`.
+- The backend func main() is is `src/backend/cmd/swings/swings.go`
+- Don't discover directory `.task`, `axe` and `dist`
+- Don't edit files in directory `docs` without prompts.
+- Read *.go files only when you want to edit code.
+"""
+
+[params]
+temperature = 0.2
