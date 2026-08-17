@@ -1,0 +1,46 @@
+# agent_swings 建置腳本
+
+version: '3'
+
+dotenv: ['.env']
+
+# 全域變數
+vars:
+  BIN_SWINGS_NAME: swings
+  DEV_DIR: dist/dev
+  VERSION: 1.0.0
+  EXE: '{{if eq OS "windows"}}.exe{{end}}'
+
+tasks:
+  default:
+    desc: "預設任務：列出所有可用的指令"
+    cmds:
+      - echo "OS={{OS}}"
+      - task --list
+
+  build:
+    desc: "編譯 Go 應用程式 (開發環境)"
+    # 增量編譯設定
+    sources:
+      - "src/backend/**/*.go"
+    generates:
+      - "{{.DEV_DIR}}/{{OS}}/bin/{{.BIN_SWINGS_NAME}}{{.EXE}}"
+    # 編譯流程
+    cmds:
+      # 先確認作業系統, 漏加 .exe 時需要修正 if 比對條件
+      - echo "編譯 {{OS}} 平台的執行檔"
+      # 編譯時順便把版本號 (Version) 注入到 main 程式中
+      # 編譯時會自動生成目錄結構, 不需要事先 mkdir -p {{.DEV_DIR}}/bin
+      - go build -C src/backend -ldflags "-X main.Version={{.VERSION}}" -o ../../{{.DEV_DIR}}/{{OS}}/bin/{{.BIN_SWINGS_NAME}}{{.EXE}} ./cmd/swings
+
+  run:
+    desc: "編譯後在本機執行開發環境 (不含 docker compose)"
+    deps: [build]
+    cmds:
+      - cd {{.DEV_DIR}}/{{OS}}/bin && ./{{.BIN_SWINGS_NAME}}{{.EXE}}
+
+  clean:
+    desc: "清理編譯產出的二進位檔案"
+    cmds:
+      # 跨平台支援，不論在 Windows 還是 Unix 系統都能安全刪除
+      - rm -rf {{.DEV_DIR}}
