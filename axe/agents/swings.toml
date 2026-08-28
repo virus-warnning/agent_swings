@@ -1,29 +1,38 @@
 name = "swings"
-description = "develop agent swings"
+description = "Agent for developing the swings project (MCP + HTTP services)"
 model = "openai/develop"
-timeout = 600 
+system_prompt = """
+You are responsible for developing the "swings" project.
+The project offers a backend service combining MCP and HTTP services in Go.
+
+### Core Guidelines
+- Architecture Knowledge: Refer to `README.md` and `docs/SYS_ARCH.md` for directory structure and architecture.
+- MCP Protocol: Follow version `2026-07-28` with stateless sessions.
+- Project Paths:
+  - Backend Go module: `src/backend`
+  - Main entry point: `src/backend/cmd/swings/swings.go`
+
+### Scope & Rules
+- Directory Inspection: Limit the usage of `list_directory` exclusively to `src/backend/`.
+- File Editing: Edit files in `docs/` only when explicitly instructed in the user prompt.
+- Code Reading: Read `.go` source files selectively when inspecting or updating specific logic.
+"""
+
+context_files = [
+  "README.md",
+  "docs/SYS_ARCH.md"
+]
+
 tools = [
   "list_directory",
   "read_file",
   "write_file"
 ]
-files = [
-  "README.md",
-  "docs/SYS_ARCH.md",
-]
 
-system_prompt = """
-You are responsible for development of agent swings project.
-The goal of this project is offering a service including MCP and HTTP services.
+timeout = 600
 
-- Discover directories or files by directory structure in README.md, don't use list_directory to do that.
-- The MCP service protocol version is 2026-07-28 with stateless session.
-- The backend golang module is in `src/backend`.
-- The backend func main() is is `src/backend/cmd/swings/swings.go`
-- Don't discover directory `.task`, `axe` and `dist`
-- Don't edit files in directory `docs` without prompts.
-- Read *.go files only when you want to edit code.
-"""
+[memory]
+enabled = true
 
 [params]
 temperature = 0.2
