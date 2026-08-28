@@ -64,6 +64,7 @@ func main() {
 func newMcpServer() *mcp.Server {
 	svr := mcp.NewServer(&mcp.Implementation{Name: "swings", Version: Version}, nil)
 	mcp.AddTool(svr, &mcp.Tool{Name: "greet", Description: "say hi"}, mcp_handler.SayHi)
+	mcp.AddTool(svr, &mcp.Tool{Name: "mermaidToImage", Description: "Convert mermaid into SVG or PNG."}, mcp_handler.MermaidToImage)
 	mcp.AddTool(svr, &mcp.Tool{Name: "xmlTidy", Description: "xxx"}, mcp_handler.XmlFormat)
 	return svr
 }
