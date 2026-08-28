@@ -1,0 +1,17 @@
+level: info
+development: false
+encoding: json
+disableCaller: false
+disableStacktrace: false
+outputPaths:
+  - stdout
+  - ./app.log
+errorOutputPaths:
+  - stderr
+encoderConfig:
+  messageKey: msg
+  levelKey: level
+  timeKey: ts
+  timeEncoder: iso8601      # 支援 iso8601, rfc3339, epoch, millis, nano
+  levelEncoder: lowercase   # 支援 lowercase, capital, color
+  callerKey: caller

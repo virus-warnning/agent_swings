@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,14 +10,20 @@ import (
 	"syscall"
 	"time"
 
+	"fundamental-ramen.com/agent-swing/internal/commons"
 	mcp_handler "fundamental-ramen.com/agent-swing/internal/handlers"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"go.uber.org/zap"
+	"go.yaml.in/yaml/v3"
 )
 
 // Version 預設為 dev，編譯時可透過 ldflags 注入 (見 Taskfile.yaml)
 var Version = "dev"
 
 func main() {
+	setupLogger()
+	zap.L().Info("Logger 配置完成")
+
 	svr := newMcpServer()
 
 	mux := http.NewServeMux()
@@ -61,10 +68,38 @@ func main() {
 	log.Println("HTTP server stopped")
 }
 
+func setupLogger() {
+	cfg := zap.NewProductionConfig()
+
+	configPath := commons.GetPathFromHome("etc/zaplog.yaml")
+	fmt.Printf("log config path: %s\n", configPath)
+	yamlData, err := os.ReadFile(configPath)
+	if err != nil {
+		panic(err)
+	}
+
+	// zaplog.yaml 覆蓋 zap.Config 基本架構
+	if err := yaml.Unmarshal(yamlData, &cfg); err != nil {
+		panic(err)
+	}
+
+	// 建立 Logger 實例
+	logger, err := cfg.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	// 設定全域使用
+	zap.ReplaceGlobals(logger)
+
+	// 結束前先完成存檔
+	defer zap.L().Sync()
+}
+
 func newMcpServer() *mcp.Server {
 	svr := mcp.NewServer(&mcp.Implementation{Name: "swings", Version: Version}, nil)
 	mcp.AddTool(svr, &mcp.Tool{Name: "greet", Description: "say hi"}, mcp_handler.SayHi)
 	mcp.AddTool(svr, &mcp.Tool{Name: "mermaidToImage", Description: "Convert mermaid into SVG or PNG."}, mcp_handler.MermaidToImage)
-	mcp.AddTool(svr, &mcp.Tool{Name: "xmlTidy", Description: "xxx"}, mcp_handler.XmlFormat)
+	// mcp.AddTool(svr, &mcp.Tool{Name: "xmlTidy", Description: "xxx"}, mcp_handler.XmlFormat)
 	return svr
 }

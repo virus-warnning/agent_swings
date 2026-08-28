@@ -32,10 +32,21 @@ tasks:
       # 編譯時順便把版本號 (Version) 注入到 main 程式中
       # 編譯時會自動生成目錄結構, 不需要事先 mkdir -p {{.DEV_DIR}}/bin
       - go build -C src/backend -ldflags "-X main.Version={{.VERSION}}" -o ../../{{.DEV_DIR}}/{{OS}}/bin/{{.BIN_SWINGS_NAME}}{{.EXE}} ./cmd/swings
+      - mkdir -p {{.DEV_DIR}}/{{OS}}/etc
+      - cp zaplog.yaml ./{{.DEV_DIR}}/{{OS}}/etc
+
+  containers:
+    desc: "啟動服務依賴的 docker 容器"
+    # cd 和 docker compose 不可以分開兩行寫, 分兩行寫會在兩個獨立的 shell 環境工作
+    status:
+      - cd compose && test -n "$(docker compose ps -q --filter status=running kroki)"
+    cmds:
+      - echo "compose-kroki-1 尚未啟動, 執行自動啟動"
+      - cd compose && docker compose up -d
 
   run:
     desc: "編譯後在本機執行開發環境 (不含 docker compose)"
-    deps: [build]
+    deps: [build, containers]
     cmds:
       - cd {{.DEV_DIR}}/{{OS}}/bin && ./{{.BIN_SWINGS_NAME}}{{.EXE}}
 

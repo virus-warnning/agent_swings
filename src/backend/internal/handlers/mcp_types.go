@@ -1,12 +1,8 @@
 package mcp_handler
 
 type MermaidToImageInput struct {
-	Syntax string `json:"syntax" jsonschema:"todo"`
-	Format string `json:"format" jsonschema:"todo"`
-}
-
-type MermaidToImageOutput struct {
-	Image string `json:"image" jsonschema:"todo"`
+	Syntax string `json:"syntax" jsonschema:"Syntax of mermaid chart"`
+	Format string `json:"format" jsonschema:"Output format, svg or png"`
 }
 
 type SayHiInput struct {

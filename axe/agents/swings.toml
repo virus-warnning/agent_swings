@@ -16,6 +16,7 @@ system_prompt = """
 You are responsible for development of agent swings project.
 The goal of this project is offering a service including MCP and HTTP services.
 
+- Discover directories or files by directory structure in README.md, don't use list_directory to do that.
 - The MCP service protocol version is 2026-07-28 with stateless session.
 - The backend golang module is in `src/backend`.
 - The backend func main() is is `src/backend/cmd/swings/swings.go`
