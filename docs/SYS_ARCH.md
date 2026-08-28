@@ -16,7 +16,7 @@ flowchart LR
   end
 
   subgraph resources
-    D1(Mermaid<br>Docker Container)
+    D1(Mermaid<br>Docker Container<br>yuzutech/kroki-mermaid)
   end
 
   A1 --> B1
