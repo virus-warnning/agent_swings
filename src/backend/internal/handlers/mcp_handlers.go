@@ -3,6 +3,7 @@ package mcp_handler
 import (
 	"context"
 
+	"github.com/go-xmlfmt/xmlfmt"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -14,11 +15,13 @@ func SayHi(ctx context.Context, req *mcp.CallToolRequest, input SayHiInput) (
 	return nil, SayHiOutput{Greeting: "Hi " + input.Name}, nil
 }
 
-func XmlTidy(ctx context.Context, req *mcp.CallToolRequest, input TidyInput) (
+func XmlFormat(ctx context.Context, req *mcp.CallToolRequest, input XmlFormatterInput) (
 	*mcp.CallToolResult,
-	TidyOutput,
+	XmlFormatterOutput,
 	error,
 ) {
-	// TODO: tidy
-	return nil, TidyOutput{XmlContent: "<text>sucks</text>"}, nil
+	// Format the XML with two-space indentation.
+	formatted := xmlfmt.FormatXML(input.XmlContent, "", "  ")
+
+	return nil, XmlFormatterOutput{XmlContent: formatted}, nil
 }

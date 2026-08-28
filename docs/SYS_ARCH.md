@@ -12,7 +12,7 @@ flowchart LR
   subgraph backend services
     C1(Mermaid to SVG)
     C2(Mermaid to PNG)
-    C3(XML tidy)
+    C3(XML Formatter)
   end
 
   subgraph resources

@@ -8,10 +8,10 @@ type SayHiOutput struct {
 	Greeting string `json:"greeting" jsonschema:"the greeting to tell to the user"`
 }
 
-type TidyInput struct {
+type XmlFormatterInput struct {
 	XmlContent string `json:"xml"`
 }
 
-type TidyOutput struct {
+type XmlFormatterOutput struct {
 	XmlContent string `json:"xml"`
 }
