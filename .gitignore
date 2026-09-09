@@ -1,2 +1,18 @@
 .task
 dist
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# IDE
+.idea
+.vscode
