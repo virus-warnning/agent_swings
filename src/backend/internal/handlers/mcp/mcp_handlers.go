@@ -16,10 +16,24 @@ import (
 // mermaidServiceURL is the base URL of the kroki-mermaid container.
 const mermaidServiceURL = "http://localhost:8000/mermaid"
 
+// MermaidToImageInput is the input for the MermaidToImage tool.
+type MermaidToImageInput struct {
+	Syntax string `json:"syntax" jsonschema:"Syntax of mermaid chart"`
+	Format string `json:"format" jsonschema:"Output format, svg or png"`
+}
+
 // mermaidFormatMime maps a supported output format to its MIME type.
 var mermaidFormatMime = map[string]string{
 	"svg": "image/svg+xml",
 	"png": "image/png",
+}
+
+func SayHi(ctx context.Context, req *mcp.CallToolRequest, input SayHiInput) (
+	*mcp.CallToolResult,
+	SayHiOutput,
+	error,
+) {
+	return nil, SayHiOutput{Greeting: "Hi " + input.Name}, nil
 }
 
 func MermaidToImage(ctx context.Context, req *mcp.CallToolRequest, input MermaidToImageInput) (
@@ -86,14 +100,6 @@ func MermaidToImage(ctx context.Context, req *mcp.CallToolRequest, input Mermaid
 	}
 
 	return result, nil, nil
-}
-
-func SayHi(ctx context.Context, req *mcp.CallToolRequest, input SayHiInput) (
-	*mcp.CallToolResult,
-	SayHiOutput,
-	error,
-) {
-	return nil, SayHiOutput{Greeting: "Hi " + input.Name}, nil
 }
 
 func XmlFormat(ctx context.Context, req *mcp.CallToolRequest, input XmlFormatterInput) (

@@ -1,4 +1,12 @@
 <script setup>
+const colorMode = useColorMode()
+
+if (process.client && !localStorage.getItem('nuxt-color-mode')) {
+  colorMode.value = 'light'
+}
+function toggleColorMode() {
+  colorMode.value = colorMode.value === 'dark' ? 'light' : 'dark'
+}
 useHead({
   meta: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1' }
@@ -22,59 +30,43 @@ useSeoMeta({
   ogImage: 'https://ui.nuxt.com/assets/templates/nuxt/starter-light.png',
   twitterCard: 'summary_large_image'
 })
+
+const sidebarOpen = ref(true)
+
+const navLinks = [
+  { label: 'Mermaid', icon: 'i-lucide-git-branch', to: '/mermaid' },
+  { label: 'Projects', icon: 'i-lucide-folder-open', to: '/projects' },
+  { label: 'Settings', icon: 'i-lucide-settings', to: '/settings' }
+]
 </script>
 
 <template>
   <UApp>
-    <UHeader>
-      <template #left>
-        <NuxtLink
-          to="/"
-          class="focus-visible:outline-3 outline-primary/25 rounded-md p-1 -ms-1"
-        >
-          <AppLogo class="w-auto h-6 shrink-0" />
-        </NuxtLink>
-
-        <TemplateMenu />
-      </template>
-
-      <template #right>
-        <UColorModeButton />
-
-        <UButton
-          to="https://github.com/nuxt-ui-templates/starter"
-          target="_blank"
-          icon="i-simple-icons-github"
-          aria-label="GitHub"
-          color="neutral"
-          variant="ghost"
-        />
-      </template>
-    </UHeader>
-
-    <UMain>
-      <NuxtPage />
-    </UMain>
-
-    <USeparator icon="i-simple-icons-nuxtdotjs" />
-
-    <UFooter>
-      <template #left>
-        <p class="text-sm text-muted">
-          Built with Nuxt UI • © {{ new Date().getFullYear() }}
-        </p>
-      </template>
-
-      <template #right>
-        <UButton
-          to="https://github.com/nuxt-ui-templates/starter"
-          target="_blank"
-          icon="i-simple-icons-github"
-          aria-label="GitHub"
-          color="neutral"
-          variant="ghost"
-        />
-      </template>
-    </UFooter>
+    <div class="flex h-dvh flex-col">
+      <UHeader title="Nuxt UI">
+        <template #right>
+          <UButton
+            :icon="colorMode === 'dark' ? 'i-lucide-sun' : 'i-lucide-moon'"
+            :ui="{ base: 'transition-colors' }"
+            color="neutral"
+            variant="ghost"
+            :aria-label="`Switch to ${colorMode === 'dark' ? 'light' : 'dark'} mode`"
+            @click="toggleColorMode"
+          />
+        </template>
+      </UHeader>
+      <div class="flex flex-1 overflow-hidden">
+        <USidebar v-model:open="sidebarOpen"
+          variant="inset"
+          collapsible="none"
+          class="border-r border-default">
+          <ULink to="/">Dashboard</ULink>
+          <ULink to="/mermaid">Mermaid</ULink>
+        </USidebar>
+        <UMain class="flex-1 overflow-y-auto">
+          <NuxtPage />
+        </UMain>
+      </div>
+    </div>
   </UApp>
 </template>

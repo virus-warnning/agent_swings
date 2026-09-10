@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"fundamental-ramen.com/agent-swing/internal/commons"
-	mcp_handler "fundamental-ramen.com/agent-swing/internal/handlers"
+	api_handlers "fundamental-ramen.com/agent-swing/internal/handlers/api"
+	mcp_handler "fundamental-ramen.com/agent-swing/internal/handlers/mcp"
+	"github.com/gofiber/fiber/v3"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
 	"go.yaml.in/yaml/v3"
@@ -26,6 +28,9 @@ func main() {
 
 	svr := newMcpServer()
 
+	// ---- MCP / SSE 服務 (stdlib http.Server, :9001) ----
+	// 獨立於 Fiber，直接以標準庫 http 掛載 MCP 的 Streamable HTTP 與 SSE transport，
+	// 避免跨框架代理與路徑改寫，降低維護複雜度。
 	mux := http.NewServeMux()
 
 	// Streamable HTTP transport
@@ -42,12 +47,28 @@ func main() {
 	)
 	mux.Handle("/sse", sseHandler)
 
-	srv := &http.Server{
+	mcpSrv := &http.Server{
 		Addr:    ":9001",
 		Handler: mux,
 	}
 
-	// 收到 SIGINT / SIGTERM 時優雅關閉，讓服務持續工作直到被要求停止
+	// 啟動 MCP / SSE 服務
+	go func() {
+		log.Println("MCP/SSE server (streamable + sse) listening on :9001")
+		if err := mcpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("mcp/sse server error: %v", err)
+		}
+	}()
+
+	// ---- API 服務 (Fiber, :9002) ----
+	app := fiber.New(fiber.Config{
+		AppName: "swings",
+	})
+
+	// POST /api/mermaid-to-svg — proxy mermaid syntax to kroki and return SVG
+	app.Post("/api/mermaid-to-svg", api_handlers.MermaidToImage)
+
+	// 收到 SIGINT / SIGTERM 時優雅關閉，同時關閉兩個服務
 	go func() {
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
@@ -55,17 +76,21 @@ func main() {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		if err := srv.Shutdown(ctx); err != nil {
-			log.Printf("http server shutdown error: %v", err)
+
+		if err := mcpSrv.Shutdown(ctx); err != nil {
+			log.Printf("mcp/sse server shutdown error: %v", err)
+		}
+		if err := app.ShutdownWithContext(ctx); err != nil {
+			log.Printf("fiber server shutdown error: %v", err)
 		}
 	}()
 
-	// HTTP server 跑在主 goroutine，程式的生命週期跟著它走
-	log.Println("HTTP server (streamable + sse) listening on :9001")
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("http server error: %v", err)
+	// Fiber API server 跑在主 goroutine，程式的生命週期跟著它走
+	log.Println("API server (fiber) listening on :9002")
+	if err := app.Listen(":9002"); err != nil {
+		log.Fatalf("fiber server error: %v", err)
 	}
-	log.Println("HTTP server stopped")
+	log.Println("API server stopped")
 }
 
 func setupLogger() {
