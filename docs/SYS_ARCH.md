@@ -4,9 +4,13 @@ flowchart LR
   A2([👩🏻‍💻 Human])
 
   subgraph backend handlers
-    B1(MCP)
-    B2(HTTP)
-    B3(MQTT)
+    B1("HTTP<br>(Fiber v3)")
+    B2("API handler")
+    B3("MCP HTTP")
+    B4("Streamable Handler")
+    B5("SSE handler")
+    B6("MCP Server")
+    B7("Nuxt.js")
   end
 
   subgraph backend services
@@ -20,7 +24,14 @@ flowchart LR
   end
 
   A1 --> B1
-  A2 --> B2 & B3
-  B1 --> C1 & C2 & C3
+  A2 --> B1
+  B1 --> |/api| B2
+  B1 --> |/mcp or /sse| B3
+  B1 --> |otherwise| B7
+  B3 --> |/mcp| B4
+  B3 --> |/sse| B5
+  B4 & B5 --> B6
+  B6 --> C1 & C2 & C3
+  B2 --> D1
   C1 & C2 --> D1
 ```
