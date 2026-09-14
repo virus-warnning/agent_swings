@@ -62,6 +62,8 @@ const navLinks = [
           class="border-r border-default">
           <ULink to="/">Dashboard</ULink>
           <ULink to="/mermaid">Mermaid</ULink>
+          <ULink to="/jhs-tutor">國中家教</ULink>
+          <ULink to="/vocab-card">生字卡</ULink>
         </USidebar>
         <UMain class="flex-1 overflow-y-auto">
           <NuxtPage />
