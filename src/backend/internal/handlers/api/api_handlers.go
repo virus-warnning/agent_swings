@@ -43,7 +43,9 @@ func MermaidToImage(c fiber.Ctx) error {
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 		zap.L().Error("kroki returned error", zap.Int("status", resp.StatusCode), zap.String("body", string(respBody)))
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"error": fmt.Sprintf("kroki returned %d", resp.StatusCode)})
+		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
+			"error": fmt.Sprintf("kroki returned %d: %s", resp.StatusCode, strings.TrimSpace(string(respBody))),
+		})
 	}
 
 	svg, err := io.ReadAll(resp.Body)

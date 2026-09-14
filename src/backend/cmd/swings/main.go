@@ -14,6 +14,7 @@ import (
 	api_handlers "fundamental-ramen.com/agent-swing/internal/handlers/api"
 	mcp_handler "fundamental-ramen.com/agent-swing/internal/handlers/mcp"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
 	"go.yaml.in/yaml/v3"
@@ -64,6 +65,9 @@ func main() {
 	app := fiber.New(fiber.Config{
 		AppName: "swings",
 	})
+
+	// CORS middleware — 允許前端跨域存取
+	app.Use(cors.New())
 
 	// POST /api/mermaid-to-svg — proxy mermaid syntax to kroki and return SVG
 	app.Post("/api/mermaid-to-svg", api_handlers.MermaidToImage)
