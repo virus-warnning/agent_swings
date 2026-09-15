@@ -9,6 +9,16 @@ export default defineNuxtConfig({
     preference: 'light'
   },
 
+  app: {
+    head: {
+      script: [
+        {
+          innerHTML: `(function(){document.documentElement.classList.remove('dark');localStorage.removeItem('nuxt-color-mode');})()`
+        }
+      ]
+    }
+  },
+
   devtools: {
     enabled: true
   },

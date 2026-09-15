@@ -43,16 +43,27 @@ const navLinks = [
 <template>
   <UApp>
     <div class="flex h-dvh flex-col">
-      <UHeader title="Nuxt UI">
+      <UHeader
+        title="Nuxt UI"
+        class="h-12"
+        :ui="{ base: 'h-8 px-2 justify-between', container: 'max-w-full px-0' }"
+      >
+        <template #left>
+          <div>
+            Agent Swings
+          </div>
+        </template>
         <template #right>
-          <UButton
-            :icon="colorMode === 'dark' ? 'i-lucide-sun' : 'i-lucide-moon'"
-            :ui="{ base: 'transition-colors' }"
-            color="neutral"
-            variant="ghost"
-            :aria-label="`Switch to ${colorMode === 'dark' ? 'light' : 'dark'} mode`"
-            @click="toggleColorMode"
-          />
+          <div class="p-1">
+            <UButton
+              :icon="colorMode === 'dark' ? 'i-lucide-sun' : 'i-lucide-moon'"
+              :ui="{ base: 'transition-colors' }"
+              color="neutral"
+              variant="ghost"
+              :aria-label="`Switch to ${colorMode === 'dark' ? 'light' : 'dark'} mode`"
+              @click="toggleColorMode"
+            />
+          </div>
         </template>
       </UHeader>
       <div class="flex flex-1 overflow-hidden">
@@ -61,8 +72,9 @@ const navLinks = [
           collapsible="none"
           class="border-r border-default">
           <ULink to="/">Dashboard</ULink>
-          <ULink to="/mermaid">Mermaid</ULink>
-          <ULink to="/jhs-tutor">國中家教</ULink>
+          <ULink to="/mermaid">美人魚圖</ULink>
+          <ULink to="/jhs-tutor">家教</ULink>
+          <ULink to="/translator">翻譯機</ULink>
           <ULink to="/vocab-card">生字卡</ULink>
         </USidebar>
         <UMain class="flex-1 overflow-y-auto">

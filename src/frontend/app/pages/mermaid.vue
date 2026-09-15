@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SplitterItem } from '@nuxt/ui'
-import { ref, nextTick, watch } from 'vue'
+import { ref, nextTick, watch, onMounted } from 'vue'
 import { Codemirror } from 'vue-codemirror'
 import { EditorView } from '@codemirror/view'
 
@@ -105,6 +105,11 @@ watch(diagramType, (type) => {
   code.value = templates[type] ?? code.value
 })
 
+// 頁面載入完成時自動生成 SVG
+onMounted(() => {
+  if (code.value.trim()) generateSVG()
+})
+
 // Debounced auto-generate: 停止輸入 800ms 後自動生成
 const AUTO_GEN_DELAY = 800
 let autoGenTimer: ReturnType<typeof setTimeout> | undefined
@@ -199,6 +204,18 @@ const extensions = [
   })
 ]
 
+function cleanError(msg: string): string {
+  // 移除 kroki 錯誤前綴
+  let s = msg.replace(/^kroki returned \d+:\s*/i, '').replace(/^Error \d+:\s*/i, '')
+  // 從 cursor 行 (--------^) 開始截斷後續內容
+  const lines = s.split('\n')
+  const idx = lines.findIndex(line => /[-\s]*\^/.test(line))
+  if (idx !== -1) {
+    s = lines.slice(0, idx).join('\n')
+  }
+  return s.trim() || msg
+}
+
 async function generateSVG() {
   loading.value = true
   hasError.value = false
@@ -223,7 +240,7 @@ async function generateSVG() {
     fitToView()
   } catch (e: any) {
     hasError.value = true
-    svg.value = `<pre class="text-red-500 text-sm p-2">${e.message}</pre>`
+    svg.value = `<pre class="text-red-500 text-sm p-2 whitespace-pre-wrap">${cleanError(e.message)}</pre>`
   } finally {
     loading.value = false
   }
