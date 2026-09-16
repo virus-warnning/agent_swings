@@ -86,9 +86,9 @@ const timelineTemplate = `timeline
             : SVG preview & zoom`
 
 const diagramTypes = [
-  { label: 'flowchart', value: 'flowchart' },
-  { label: 'mindmap', value: 'mindmap' },
-  { label: 'timeline', value: 'timeline' }
+  { label: '流程圖', value: 'flowchart' },
+  { label: '心智圖', value: 'mindmap' },
+  { label: '時間軸', value: 'timeline' }
 ]
 
 const diagramType = ref('flowchart')
@@ -124,6 +124,9 @@ watch(code, () => {
 const svg = ref('')
 const loading = ref(false)
 const hasError = ref(false)
+const translatingError = ref(false)
+const fixingCode = ref(false)
+const lastError = ref("")
 
 // Zoom & pan state
 const zoom = ref(1)
@@ -216,6 +219,58 @@ function cleanError(msg: string): string {
   return s.trim() || msg
 }
 
+async function translateError(rawError: string) {
+  translatingError.value = true
+  try {
+    const resp = await fetch('http://localhost:9002/api/ai-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_prompt: '你是一位專業翻譯人員。將錯誤訊息翻譯為繁體中文。只翻譯，不添加解釋。直接輸出翻譯結果。',
+        content: rawError,
+        model: 'chat'
+      })
+    })
+    const data = await resp.json()
+    if (resp.ok && !data.error && data.content) {
+      svg.value = `<pre class="text-red-500 text-sm p-2 whitespace-pre-wrap">${data.content}</pre>`
+    }
+  } catch {
+    // keep the raw error if translation fails
+  } finally {
+    translatingError.value = false
+  }
+}
+
+async function letAIFix() {
+  if (!code.value.trim() || !lastError.value) return
+  fixingCode.value = true
+  try {
+    const resp = await fetch('http://localhost:9002/api/ai-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_prompt: '你是一位 Mermaid 語法專家。使用者會給你一段有語法錯誤的 Mermaid 程式碼和錯誤訊息。請修正錯誤並只輸出修正後的完整 Mermaid 程式碼，不要包含任何解釋、備註或 markdown 圍欄。',
+        content: '程式碼:\n' + code.value + '\n\n錯誤訊息: ' + lastError.value,
+        model: 'chat'
+      })
+    })
+    const data = await resp.json()
+    if (resp.ok && !data.error && data.content) {
+      let fixed = data.content.trim()
+      fixed = fixed.replace(/^\`mermaid\n?/, '').replace(/\`\s*$/, '').trim()
+      code.value = fixed
+      hasError.value = false
+      lastError.value = ''
+      generateSVG()
+    }
+  } catch {
+    // ignore fix failure
+  } finally {
+    fixingCode.value = false
+  }
+}
+
 async function generateSVG() {
   loading.value = true
   hasError.value = false
@@ -240,7 +295,10 @@ async function generateSVG() {
     fitToView()
   } catch (e: any) {
     hasError.value = true
-    svg.value = `<pre class="text-red-500 text-sm p-2 whitespace-pre-wrap">${cleanError(e.message)}</pre>`
+    const rawError = cleanError(e.message)
+    lastError.value = rawError
+    svg.value = `<pre class="text-red-500 text-sm p-2 whitespace-pre-wrap">${rawError}</pre>`
+    translateError(rawError)
   } finally {
     loading.value = false
   }
@@ -272,9 +330,18 @@ function downloadSVG() {
               class="w-32"
             />
             <UButton
+              v-if="hasError"
+              size="xs"
+              color="warning"
+              icon="i-lucide-wand-2"
+              label="讓 AI 修正"
+              :loading="fixingCode"
+              @click="letAIFix"
+            />
+            <UButton
               size="xs"
               icon="i-lucide-file-code"
-              label="Generate"
+              label="生成"
               :loading="loading"
               class="ml-auto"
               @click="generateSVG"
@@ -320,7 +387,7 @@ function downloadSVG() {
               size="xs"
               color="neutral"
               icon="i-lucide-download"
-              label="Download"
+              label="下載"
               :disabled="!svg || hasError"
               class="ml-auto"
               @click="downloadSVG"
@@ -343,7 +410,8 @@ function downloadSVG() {
               class="max-w-none"
               :style="{ transform: `scale(${zoom}) translate(${tx}px, ${ty}px)` }"
             ></div>
-            <span v-else class="text-muted text-sm">Press "Generate" to render</span>
+            <span v-else-if="translatingError" class="text-dimmed text-sm">翻譯錯誤中...</span>
+            <span v-else class="text-muted text-sm">點擊「生成」來渲染圖形</span>
           </div>
         </div>
       </template>

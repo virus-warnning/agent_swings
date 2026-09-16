@@ -6,34 +6,28 @@ import { aiModels } from '~/composables/useAiModels'
 const card = 'border border-default rounded-xl overflow-hidden p-[5px] bg-default'
 
 const innerItems: SplitterItem[] = [
-  { slot: 'main', minSize: 30, defaultSize: 40, class: card },
-  { slot: 'right', minSize: 30, defaultSize: 60, class: card }
+  { slot: 'main', minSize: 30, defaultSize: 45, class: card },
+  { slot: 'right', minSize: 30, defaultSize: 55, class: card }
 ]
 
-const models = aiModels
 const model = ref('chat')
 
-const question = ref('99^2 + 101^2')
-const answer = ref('')
+const sourceText = ref(`SyntaxError: Lexical error on line 1. Unrecognized text.
+flowchart TD2  A1(["👩🏻‍💻`)
+const result = ref('')
 const loading = ref(false)
 const hasError = ref(false)
 const error = ref('')
 const elapsed = ref(0)
 
-const SYSTEM_PROMPT = `你是一位國中數學家教。學生會提出數學問題，你的任務是：
-- 用提問和線索引導學生自己思考，不要直接給出最終答案
-- 先確認學生目前卡在哪一步
-- 給予適當的提示或類似範例，讓學生能獨立解出
-- 語氣友善、鼓勵為主，語氣像真人老師
-- 使用繁體中文回答
-- 回答簡潔，不要超過 5 個段落`
+const SYSTEM_PROMPT = '你是一位專業翻譯人員。將使用者的文字翻譯為繁體中文。只負責翻譯，不添加解釋、備註或額外說明。直接輸出翻譯結果，盡可能用最短時間完成。'
 
-async function ask() {
-  if (!question.value.trim()) return
+async function translate() {
+  if (!sourceText.value.trim()) return
   loading.value = true
   hasError.value = false
   error.value = ''
-  answer.value = ''
+  result.value = ''
 
   const start = performance.now()
   try {
@@ -42,7 +36,7 @@ async function ask() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         system_prompt: SYSTEM_PROMPT,
-        content: question.value,
+        content: sourceText.value,
         model: model.value
       })
     })
@@ -53,7 +47,7 @@ async function ask() {
       hasError.value = true
       error.value = data.detail || data.error || `HTTP ${resp.status}`
     } else {
-      answer.value = data.content
+      result.value = data.content
     }
   } catch (e: any) {
     elapsed.value = Math.round(performance.now() - start)
@@ -65,8 +59,8 @@ async function ask() {
 }
 
 function clearAll() {
-  question.value = ''
-  answer.value = ''
+  sourceText.value = ''
+  result.value = ''
   error.value = ''
   hasError.value = false
   elapsed.value = 0
@@ -75,39 +69,39 @@ function clearAll() {
 
 <template>
   <div class="w-full h-full p-2 bg-muted">
-    <USplitter id="tutor-splitter" :items="innerItems">
+    <USplitter id="translator-splitter" :items="innerItems">
       <template #main>
         <div class="w-full h-full flex flex-col">
           <!-- Left toolbar -->
           <div class="flex items-center gap-1 p-1 border-b border-default">
             <USelect
               v-model="model"
-              :items="models"
+              :items="aiModels"
               size="xs"
               class="w-28"
             />
-            <span class="text-xs text-dimmed ml-2">問題</span>
+            <span class="text-xs text-dimmed ml-2">原文</span>
             <UButton
               size="xs"
-              icon="i-lucide-send"
-              label="問"
+              icon="i-lucide-languages"
+              label="翻譯"
               :loading="loading"
-              :disabled="!question.trim()"
+              :disabled="!sourceText.trim()"
               class="ml-auto"
-              @click="ask"
+              @click="translate"
             />
           </div>
-          <!-- Question editor -->
+          <!-- Source editor -->
           <div class="flex-1 min-h-0 p-3">
             <textarea
-              v-model="question"
+              v-model="sourceText"
               class="w-full h-full resize-none border-none outline-none bg-transparent text-sm font-mono"
-              placeholder="輸入你的數學問題..."
-              @keydown.ctrl.enter="ask"
+              placeholder="Paste text here to translate..."
+              @keydown.ctrl.enter="translate"
             />
           </div>
           <div class="flex items-center justify-between px-3 py-1 border-t border-default">
-            <span class="text-[10px] text-dimmed">Ctrl+Enter 送出</span>
+            <span class="text-[10px] text-dimmed">Ctrl+Enter 翻譯</span>
             <UButton
               size="xs"
               color="neutral"
@@ -123,20 +117,20 @@ function clearAll() {
         <div class="w-full h-full flex flex-col">
           <!-- Right toolbar -->
           <div class="flex items-center gap-1 p-1 border-b border-default">
-            <span class="text-xs text-dimmed">老師的回答</span>
+            <span class="text-xs text-dimmed">翻譯結果</span>
             <span v-if="elapsed > 0" class="text-xs text-dimmed ml-2">{{ elapsed }}ms</span>
           </div>
-          <!-- Answer area -->
+          <!-- Result area -->
           <div class="flex-1 min-h-0 overflow-y-auto p-3">
             <div v-if="loading" class="flex items-center justify-center h-full text-dimmed">
               <UIcon name="i-lucide-loader-circle" class="animate-spin mr-2" />
-              老師思考中...
+              翻譯中...
             </div>
-            <div v-else-if="hasError" class="text-red-500 text-sm whitespace-pre-wrap">{{ error }}</div>
-            <div v-else-if="answer" class="text-sm whitespace-pre-wrap leading-relaxed">{{ answer }}</div>
+            <div v-else-if="hasError" class="text-red-500 text-sm whitespace-pre-wrap font-mono">{{ error }}</div>
+            <div v-else-if="result" class="text-sm whitespace-pre-wrap leading-relaxed">{{ result }}</div>
             <div v-else class="flex flex-col items-center justify-center h-full text-dimmed text-sm gap-2">
-              <UIcon name="i-lucide-graduation-cap" class="w-8 h-8" />
-              <span>在左邊輸入問題，老師會引導你思考</span>
+              <UIcon name="i-lucide-languages" class="w-8 h-8" />
+              <span>在左邊貼上文字，點擊翻譯</span>
             </div>
           </div>
         </div>

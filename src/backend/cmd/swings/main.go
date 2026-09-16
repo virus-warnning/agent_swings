@@ -15,6 +15,7 @@ import (
 	mcp_handler "fundamental-ramen.com/agent-swing/internal/handlers/mcp"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/joho/godotenv"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
 	"go.yaml.in/yaml/v3"
@@ -24,6 +25,11 @@ import (
 var Version = "dev"
 
 func main() {
+	// Load ../etc/.env file (if present)
+	if err := godotenv.Load("../etc/.env"); err != nil {
+		log.Println("No .env file loaded:", err)
+	}
+
 	setupLogger()
 	zap.L().Info("Logger 配置完成")
 
@@ -72,6 +78,9 @@ func main() {
 	// POST /api/mermaid-to-svg — proxy mermaid syntax to kroki and return SVG
 	app.Post("/api/mermaid-to-svg", api_handlers.MermaidToImage)
 
+	// POST /api/ai-chat — proxy chat request to OpenAI-compatible AI server
+	app.Post("/api/ai-chat", api_handlers.AiChat)
+
 	// 收到 SIGINT / SIGTERM 時優雅關閉，同時關閉兩個服務
 	go func() {
 		sig := make(chan os.Signal, 1)
@@ -98,6 +107,11 @@ func main() {
 }
 
 func setupLogger() {
+
+	// Load ../etc/.env file (if present)
+	if err := godotenv.Load("../etc/.env"); err != nil {
+		log.Println("No .env file loaded:", err)
+	}
 	cfg := zap.NewProductionConfig()
 
 	configPath := commons.GetPathFromHome("etc/zaplog.yaml")

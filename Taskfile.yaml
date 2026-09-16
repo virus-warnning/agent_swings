@@ -8,6 +8,7 @@ dotenv: ['.env']
 vars:
   BIN_SWINGS_NAME: swings
   BIN_MERMAID_NAME: mermaid
+  BIN_CHAT_NAME: chat
   DEV_DIR: dist/dev
   VERSION: 1.0.0
   EXE: '{{if eq OS "windows"}}.exe{{end}}'
@@ -23,6 +24,7 @@ tasks:
     desc: "編譯 Go 應用程式 (開發環境)"
     # 增量編譯設定
     sources:
+      - .env
       - "src/backend/**/*.go"
     generates:
       - "{{.DEV_DIR}}/{{OS}}/bin/{{.BIN_SWINGS_NAME}}{{.EXE}}"
@@ -35,8 +37,10 @@ tasks:
       # 編譯時會自動生成目錄結構, 不需要事先 mkdir -p {{.DEV_DIR}}/bin
       - go build -C src/backend -ldflags "-X main.Version={{.VERSION}}" -o ../../{{.DEV_DIR}}/{{OS}}/bin/{{.BIN_SWINGS_NAME}}{{.EXE}} ./cmd/swings
       - go build -C src/backend -ldflags "-X main.Version={{.VERSION}}" -o ../../{{.DEV_DIR}}/{{OS}}/bin/{{.BIN_MERMAID_NAME}}{{.EXE}} ./cmd/mermaid
+      - go build -C src/backend -ldflags "-X main.Version={{.VERSION}}" -o ../../{{.DEV_DIR}}/{{OS}}/bin/{{.BIN_CHAT_NAME}}{{.EXE}} ./cmd/chat
       - mkdir -p {{.DEV_DIR}}/{{OS}}/etc
       - cp zaplog.yaml ./{{.DEV_DIR}}/{{OS}}/etc
+      - cp .env ./{{.DEV_DIR}}/{{OS}}/etc
 
   containers:
     desc: "啟動服務依賴的 docker 容器"
