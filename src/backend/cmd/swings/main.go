@@ -12,6 +12,7 @@ import (
 
 	"fundamental-ramen.com/agent-swing/internal/commons"
 	api_handlers "fundamental-ramen.com/agent-swing/internal/handlers/api"
+	hook "fundamental-ramen.com/agent-swing/internal/handlers/hook"
 	mcp_handler "fundamental-ramen.com/agent-swing/internal/handlers/mcp"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -80,6 +81,9 @@ func main() {
 
 	// POST /api/ai-chat — proxy chat request to OpenAI-compatible AI server
 	app.Post("/api/ai-chat", api_handlers.AiChat)
+
+	// POST /line/webhook — LINE Messaging API Webhook
+	app.Post("/line/webhook", hook.LineWebhookHandler)
 
 	// 收到 SIGINT / SIGTERM 時優雅關閉，同時關閉兩個服務
 	go func() {
