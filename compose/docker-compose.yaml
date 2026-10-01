@@ -1,6 +1,7 @@
 services:
   kroki:
     image: yuzutech/kroki
+    container_name: as-kroki
     ports:
       - "8000:8000"
     environment:
@@ -10,5 +11,6 @@ services:
 
   mermaid:
     image: yuzutech/kroki-mermaid
+    container_name: as-mermaid
     expose:
       - "8002"

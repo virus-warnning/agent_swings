@@ -147,6 +147,11 @@ func newMcpServer() *mcp.Server {
 	svr := mcp.NewServer(&mcp.Implementation{Name: "swings", Version: Version}, nil)
 	mcp.AddTool(svr, &mcp.Tool{Name: "greet", Description: "say hi"}, mcp_handler.SayHi)
 	mcp.AddTool(svr, &mcp.Tool{Name: "mermaidToImage", Description: "Convert mermaid into SVG or PNG."}, mcp_handler.MermaidToImage)
+	mcp.AddTool(svr, &mcp.Tool{Name: "duckduckgoSearch", Description: "Search the web using the DuckDuckGo Instant Answer API."}, mcp_handler.DuckDuckGoSearch)
+	mcp.AddTool(svr, &mcp.Tool{Name: "pdfExtractText", Description: "Extract text content from a PDF file on disk."}, mcp_handler.PdfExtractText)
+	mcp.AddTool(svr, &mcp.Tool{Name: "mediawikiSearch", Description: "Search pages on your personal MediaWiki (wiki.fundamental-ramen.com)."}, mcp_handler.MediaWikiSearch)
+	mcp.AddTool(svr, &mcp.Tool{Name: "markdownTableAlign", Description: "Align column widths of Markdown tables (non-ASCII chars count as width 2)."}, mcp_handler.MarkdownTableAlign)
+	mcp.AddTool(svr, &mcp.Tool{Name: "bibleFetch", Description: "Fetch a full chapter of Bible text (Modern Chinese Version 2019, 現代中文譯本2019版) from cb.fhl.net. Input: book abbreviation and chapter number."}, mcp_handler.BibleFetch)
 	// mcp.AddTool(svr, &mcp.Tool{Name: "xmlTidy", Description: "xxx"}, mcp_handler.XmlFormat)
 	return svr
 }
